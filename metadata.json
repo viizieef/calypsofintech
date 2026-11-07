@@ -1,0 +1,6 @@
+{
+  "name": "AcuLedger BIR - Enterprise General Ledger",
+  "description": "Real-time General Ledger, expense and income accounting with BIR (Bureau of Internal Revenue) compliance, 4 official books of accounts, VAT 2550M/Q, 2307 EWT tracking, Supabase real-time sync, and Render deployment readiness.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

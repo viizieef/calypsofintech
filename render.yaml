@@ -1,0 +1,21 @@
+services:
+  # Render Web Service (Node.js full-stack container)
+  - type: web
+    name: calypso-bir
+    runtime: node
+    plan: starter
+    region: singapore # Closest to the Philippines (low latency for BIR tax operations)
+    buildCommand: npm install && npm run build
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: 22.14.0
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: VITE_SUPABASE_URL
+        sync: false # Set in Render Dashboard with your Supabase Project URL
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false # Set in Render Dashboard with your Supabase Anon API Key

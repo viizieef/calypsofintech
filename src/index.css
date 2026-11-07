@@ -1,0 +1,199 @@
+@import "tailwindcss";
+
+:root {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+
+body {
+  background-color: #f4f5f7;
+  color: #18181b;
+  overflow-x: hidden;
+}
+
+/* Spatial UI Design: Layered Dimensional Surfaces & Volumetric Glass */
+.spatial-glass {
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 
+    0 16px 36px -8px rgba(15, 23, 42, 0.05),
+    0 2px 6px -1px rgba(0, 0, 0, 0.02),
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.spatial-elevated {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(36px) saturate(190%);
+  -webkit-backdrop-filter: blur(36px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.98);
+  box-shadow: 
+    0 30px 60px -15px rgba(15, 23, 42, 0.1),
+    0 8px 20px -4px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 1);
+}
+
+.spatial-card {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(228, 228, 231, 0.7);
+  box-shadow: 
+    0 8px 24px -4px rgba(15, 23, 42, 0.03),
+    0 0 0 1px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spatial-card:hover {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(212, 212, 216, 0.9);
+  box-shadow: 
+    0 16px 36px -6px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+}
+
+.spatial-input {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(212, 212, 216, 0.8);
+  color: #18181b;
+  transition: all 0.15s ease-in-out;
+}
+
+.spatial-input:focus {
+  background: #ffffff;
+  border-color: #27272a;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(39, 39, 42, 0.1);
+}
+
+.spatial-button-primary {
+  background: #18181b;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 4px 14px -1px rgba(0, 0, 0, 0.14),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spatial-button-primary:hover {
+  background: #27272a;
+  box-shadow: 
+    0 6px 18px -2px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.25);
+}
+
+.spatial-button-primary:active {
+  transform: scale(0.98);
+}
+
+.spatial-button-secondary {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  color: #27272a;
+  border: 1px solid rgba(228, 228, 231, 0.9);
+  box-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.spatial-button-secondary:hover {
+  background: #ffffff;
+  border-color: #d4d4d8;
+  color: #09090b;
+}
+
+.spatial-button-secondary:active {
+  transform: scale(0.98);
+}
+
+/* Backward-compatible aliases for existing component classes mapped to Spatial Neutral */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 
+    0 16px 36px -8px rgba(15, 23, 42, 0.05),
+    0 2px 6px -1px rgba(0, 0, 0, 0.02),
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.glass-panel-elevated {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(36px) saturate(190%);
+  -webkit-backdrop-filter: blur(36px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.98);
+  box-shadow: 
+    0 30px 60px -15px rgba(15, 23, 42, 0.1),
+    0 8px 20px -4px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(228, 228, 231, 0.7);
+  box-shadow: 
+    0 8px 24px -4px rgba(15, 23, 42, 0.03),
+    0 0 0 1px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(212, 212, 216, 0.9);
+  box-shadow: 
+    0 16px 36px -6px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(212, 212, 216, 0.8);
+  color: #18181b;
+  transition: all 0.15s ease-in-out;
+}
+
+.glass-input:focus {
+  background: #ffffff;
+  border-color: #27272a;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(39, 39, 42, 0.1);
+}
+
+.font-mono, tabular-nums {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Neutral Spatial Glass Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(244, 244, 245, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(161, 161, 170, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(113, 113, 122, 0.7);
+}
