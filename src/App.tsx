@@ -4,6 +4,7 @@ import { Dashboard } from './components/Dashboard';
 import { BooksOfAccounts } from './components/BooksOfAccounts';
 import { BIRReports } from './components/BIRReports';
 import { FinancialStatements } from './components/FinancialStatements';
+import { AccountManagement } from './components/AccountManagement';
 import { TransactionModal } from './components/TransactionModal';
 import { SupabaseSyncModal } from './components/SupabaseSyncModal';
 import { RenderDeployModal } from './components/RenderDeployModal';
@@ -25,7 +26,7 @@ const STORAGE_KEY_PROFILE = 'acu_ledger_profile_v1';
 
 export default function App() {
   // Navigation State
-  const [activeView, setActiveView] = useState<'dashboard' | 'books' | 'bir' | 'financials'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'books' | 'bir' | 'financials' | 'accounts'>('dashboard');
   const [activeBook, setActiveBook] = useState<'GENERAL_JOURNAL' | 'CASH_RECEIPTS' | 'CASH_DISBURSEMENTS' | 'GENERAL_LEDGER'>('GENERAL_JOURNAL');
 
   // Core Ledger State with localStorage persistence
@@ -77,6 +78,15 @@ export default function App() {
       console.error('Failed to save entries to localStorage:', e);
     }
   }, [entries]);
+
+  // Persist accounts to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_ACCOUNTS, JSON.stringify(accounts));
+    } catch (e) {
+      console.error('Failed to save accounts to localStorage:', e);
+    }
+  }, [accounts]);
 
   // Persist company to localStorage
   useEffect(() => {
@@ -272,6 +282,16 @@ export default function App() {
             entries={entries}
             accounts={accounts}
             company={company}
+          />
+        )}
+
+        {activeView === 'accounts' && (
+          <AccountManagement
+            accounts={accounts}
+            onUpdateAccounts={setAccounts}
+            entries={entries}
+            company={company}
+            onOpenCompanyModal={() => setIsCompanyModalOpen(true)}
           />
         )}
       </main>

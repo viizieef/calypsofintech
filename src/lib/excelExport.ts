@@ -680,3 +680,74 @@ export function exportCompletePackageToExcel(
 
   downloadWorkbook(wb, `Calypso_Complete_Financial_Package_${company.tin}_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
+
+/**
+ * 9. Export Chart of Accounts (COA) to Excel
+ */
+export function exportChartOfAccountsToExcel(
+  accounts: Account[],
+  ledgerMap: Map<string, AccountLedgerReport>,
+  company: CompanyProfile
+) {
+  const wb = XLSX.utils.book_new();
+
+  const titleRows: any[][] = [
+    [company.businessName.toUpperCase()],
+    [`BIR TIN: ${company.tin} | RDO: ${company.rdoCode} | ${company.taxpayerType}-Registered`],
+    ['CHART OF ACCOUNTS (BIR CAS MASTERLIST)'],
+    [`Generated Date: ${new Date().toISOString().slice(0, 10)} | Total Accounts: ${accounts.length}`],
+    [],
+  ];
+
+  const headerRow: any[] = [
+    'Account Code',
+    'Account Title / Name',
+    'Classification / Type',
+    'Normal Balance',
+    'Current Real-Time Balance (PHP)',
+    'Total Debits Posted (PHP)',
+    'Total Credits Posted (PHP)',
+    'BIR Standard Account',
+    'Description / Tax Category'
+  ];
+
+  const dataRows: any[][] = accounts.map((acc) => {
+    const report = ledgerMap.get(acc.id);
+    const balance = report?.endingBalance || 0;
+    const debits = report?.totalDebits || 0;
+    const credits = report?.totalCredits || 0;
+
+    return [
+      acc.code,
+      acc.name,
+      acc.type.toUpperCase().replace('_', ' '),
+      acc.normalBalance.toUpperCase(),
+      balance,
+      debits,
+      credits,
+      acc.isBirStandard ? 'YES (BIR CAS Standard)' : 'Custom Enterprise Account',
+      acc.description || ''
+    ];
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet([
+    ...titleRows,
+    headerRow,
+    ...dataRows
+  ]);
+
+  ws['!cols'] = [
+    { wch: 14 }, // Code
+    { wch: 38 }, // Name
+    { wch: 20 }, // Type
+    { wch: 16 }, // Normal Balance
+    { wch: 22 }, // Balance
+    { wch: 18 }, // Debits
+    { wch: 18 }, // Credits
+    { wch: 24 }, // BIR Standard
+    { wch: 35 }, // Description
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Chart of Accounts');
+  downloadWorkbook(wb, `Calypso_Chart_of_Accounts_${company.tin}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}

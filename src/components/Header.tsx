@@ -8,6 +8,8 @@ import {
   Radio, 
   Sliders,
   FileCheck2,
+  Layers,
+  Edit,
 } from 'lucide-react';
 import { CompanyProfile, SupabaseConfig } from '../types/ledger';
 
@@ -18,8 +20,8 @@ interface HeaderProps {
   onOpenSupabaseModal: () => void;
   onOpenRenderModal: () => void;
   onOpenCompanyModal: () => void;
-  activeView: 'dashboard' | 'books' | 'bir' | 'financials';
-  setActiveView: (view: 'dashboard' | 'books' | 'bir' | 'financials') => void;
+  activeView: 'dashboard' | 'books' | 'bir' | 'financials' | 'accounts';
+  setActiveView: (view: 'dashboard' | 'books' | 'bir' | 'financials' | 'accounts') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -51,19 +53,39 @@ export const Header: React.FC<HeaderProps> = ({
                 BIR RR 9-2009
               </span>
             </div>
-            <p className="text-[11px] text-zinc-500 truncate max-w-[240px] sm:max-w-xs font-medium">
-              {company.businessName} &bull; TIN {company.tin}
-            </p>
+            <div className="flex items-center space-x-1.5 mt-0.5">
+              <p className="text-[11px] text-zinc-600 truncate max-w-[200px] sm:max-w-xs font-semibold">
+                {company.businessName}
+              </p>
+              <button
+                onClick={onOpenCompanyModal}
+                className="text-[10px] text-zinc-500 hover:text-zinc-900 flex items-center gap-0.5 underline font-medium cursor-pointer"
+                title="Edit Registered Company Profile"
+              >
+                <Edit className="w-2.5 h-2.5" />
+                <span>Edit Profile</span>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Quick Actions & Status Badges in Neutral Palette */}
         <div className="flex items-center space-x-2 sm:space-x-2.5 flex-wrap">
+          {/* Edit Company Profile Button */}
+          <button
+            onClick={onOpenCompanyModal}
+            title="Edit Company BIR Registration & Tax Settings"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-200 shadow-xs transition-all cursor-pointer"
+          >
+            <Sliders className="w-3.5 h-3.5 text-zinc-500" />
+            <span className="hidden sm:inline">Edit Company Profile</span>
+          </button>
+
           {/* Supabase Connection Status Pill */}
           <button
             onClick={onOpenSupabaseModal}
             title="Supabase Database Management & Real-time Sync"
-            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
               supabaseConfig.isConnected
                 ? 'bg-zinc-900 text-white border-zinc-800 shadow-xs'
                 : 'bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-200 shadow-xs'
@@ -82,19 +104,10 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenRenderModal}
             title="Render Cloud Deployment & Blueprint"
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-200 shadow-xs transition-all"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-200 shadow-xs transition-all cursor-pointer"
           >
             <Cloud className="w-3.5 h-3.5 text-zinc-500" />
             <span className="hidden sm:inline">Deploy on Render</span>
-          </button>
-
-          {/* Company Settings */}
-          <button
-            onClick={onOpenCompanyModal}
-            title="Company BIR Registration & Tax Settings"
-            className="p-2 text-zinc-600 hover:text-zinc-950 bg-white hover:bg-zinc-50 border border-zinc-200 rounded-xl transition shadow-xs"
-          >
-            <Sliders className="w-4 h-4" />
           </button>
 
           {/* Primary Action: Record Transaction Voucher */}
@@ -113,7 +126,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex p-1 bg-zinc-100/80 rounded-2xl border border-zinc-200/80 overflow-x-auto scrollbar-none gap-1">
           <button
             onClick={() => setActiveView('dashboard')}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all flex items-center space-x-1.5 ${
+            className={`px-3 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
               activeView === 'dashboard'
                 ? 'bg-white text-zinc-950 font-bold shadow-xs border border-zinc-200/70'
                 : 'text-zinc-600 hover:text-zinc-950 hover:bg-white/50'
@@ -125,7 +138,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveView('books')}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all flex items-center space-x-1.5 ${
+            className={`px-3 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
               activeView === 'books'
                 ? 'bg-white text-zinc-950 font-bold shadow-xs border border-zinc-200/70'
                 : 'text-zinc-600 hover:text-zinc-950 hover:bg-white/50'
@@ -137,19 +150,19 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveView('bir')}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all flex items-center space-x-1.5 ${
+            className={`px-3 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
               activeView === 'bir'
                 ? 'bg-white text-zinc-950 font-bold shadow-xs border border-zinc-200/70'
                 : 'text-zinc-600 hover:text-zinc-950 hover:bg-white/50'
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5 text-zinc-500" />
-            <span>BIR Tax Returns (2550 & 2307)</span>
+            <span>BIR Returns (2550 & 2307)</span>
           </button>
 
           <button
             onClick={() => setActiveView('financials')}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all flex items-center space-x-1.5 ${
+            className={`px-3 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
               activeView === 'financials'
                 ? 'bg-white text-zinc-950 font-bold shadow-xs border border-zinc-200/70'
                 : 'text-zinc-600 hover:text-zinc-950 hover:bg-white/50'
@@ -157,6 +170,18 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Building2 className="w-3.5 h-3.5 text-zinc-500" />
             <span>Financial Statements</span>
+          </button>
+
+          <button
+            onClick={() => setActiveView('accounts')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap transition-all flex items-center space-x-1.5 cursor-pointer ${
+              activeView === 'accounts'
+                ? 'bg-white text-zinc-950 font-bold shadow-xs border border-zinc-200/70'
+                : 'text-zinc-600 hover:text-zinc-950 hover:bg-white/50'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5 text-zinc-500" />
+            <span>Account Management (COA)</span>
           </button>
         </div>
       </div>

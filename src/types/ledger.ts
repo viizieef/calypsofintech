@@ -78,3 +78,13 @@ export interface SupabaseConfig {
   autoSync: boolean;
   lastSyncedAt?: string;
 }
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Lead CPA / Controller' | 'Senior Bookkeeper' | 'Staff Accountant' | 'BIR Examiner / Auditor';
+  accessLevel: 'admin' | 'editor' | 'viewer';
+  lastActive: string;
+  status: 'active' | 'inactive';
+}
