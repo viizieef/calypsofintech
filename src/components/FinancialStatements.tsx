@@ -314,10 +314,14 @@ export const FinancialStatements: React.FC<FinancialStatementsProps> = ({
                     TOTALS
                   </td>
                   <td className="py-3 px-3.5 text-right text-zinc-900 tabular-nums">
-                    {formatPHP(trialBalanceRows.totalDebit)}
+                    <span className="accounting-double-underline inline-block pb-0.5">
+                      {formatPHP(trialBalanceRows.totalDebit)}
+                    </span>
                   </td>
                   <td className="py-3 px-3.5 text-right text-zinc-900 tabular-nums">
-                    {formatPHP(trialBalanceRows.totalCredit)}
+                    <span className="accounting-double-underline inline-block pb-0.5">
+                      {formatPHP(trialBalanceRows.totalCredit)}
+                    </span>
                   </td>
                 </tr>
               </tfoot>

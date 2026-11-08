@@ -8,9 +8,10 @@ import {
   ArrowUpRight, 
   ArrowDownRight, 
   Layers, 
-  Sparkles, 
+  Scale, 
   ExternalLink,
-  FileSpreadsheet
+  FileSpreadsheet,
+  BookPlus
 } from 'lucide-react';
 import { JournalEntry, Account, CompanyProfile } from '../types/ledger';
 import { computeBIRVATSummary, formatPHP } from '../lib/birCompliance';
@@ -21,8 +22,9 @@ interface DashboardProps {
   accounts: Account[];
   company: CompanyProfile;
   onOpenNewTransaction: (type?: 'income' | 'expense' | 'manual') => void;
-  onViewBooks: (book: 'GENERAL_JOURNAL' | 'CASH_RECEIPTS' | 'CASH_DISBURSEMENTS') => void;
+  onViewBooks: (book: 'GENERAL_JOURNAL' | 'CASH_RECEIPTS' | 'CASH_DISBURSEMENTS' | 'GENERAL_LEDGER') => void;
   onSelectEntry: (entry: JournalEntry) => void;
+  onOpenNewLedgerModal?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -32,6 +34,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenNewTransaction,
   onViewBooks,
   onSelectEntry,
+  onOpenNewLedgerModal,
 }) => {
   // Real-time calculations
   let grossRevenue = 0;
@@ -72,11 +75,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <span className="font-semibold text-zinc-800 bg-white/90 border border-zinc-200 px-2.5 py-0.5 rounded-md shadow-2xs">
                 BIR {company.taxpayerType} Registered Enterprise
               </span>
-              <span className="text-zinc-500">
+              <span className="text-zinc-500 font-medium">
                 RDO: <strong className="text-zinc-900 font-bold">{company.rdoCode}</strong>
               </span>
+              <span className="text-zinc-400">&bull;</span>
+              <span className="text-zinc-600 font-medium">
+                CAS Permitted (RR 9-2009)
+              </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight mt-2">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight mt-2 font-display">
               General Ledger & Tax Audit Suite
             </h1>
             <p className="text-xs text-zinc-600 mt-1 max-w-2xl leading-relaxed font-medium">
@@ -85,9 +92,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            {onOpenNewLedgerModal && (
+              <button
+                onClick={onOpenNewLedgerModal}
+                className="spatial-button-secondary px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow-xs bg-white text-zinc-900 border border-zinc-200"
+                title="Create a new General Ledger or subsidiary fiscal book"
+              >
+                <BookPlus className="w-4 h-4 text-zinc-700" />
+                <span>+ New Ledger</span>
+              </button>
+            )}
             <button
               onClick={() => exportJournalToExcel(entries, 'All_Transactions', company)}
-              className="spatial-button-secondary px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 cursor-pointer"
+              className="spatial-button-secondary px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 cursor-pointer shadow-xs"
               title="Download entire transaction ledger as Microsoft Excel (.xlsx)"
             >
               <FileSpreadsheet className="w-4 h-4 text-zinc-600" />
@@ -95,14 +112,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </button>
             <button
               onClick={() => onOpenNewTransaction('income')}
-              className="spatial-button-primary px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 cursor-pointer"
+              className="spatial-button-primary px-3.5 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow-xs"
             >
               <ArrowUpRight className="w-4 h-4 text-zinc-400" />
               <span>Record Sale (12% VAT)</span>
             </button>
             <button
               onClick={() => onOpenNewTransaction('expense')}
-              className="spatial-button-secondary px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 cursor-pointer"
+              className="spatial-button-secondary px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 cursor-pointer shadow-xs"
             >
               <ArrowDownRight className="w-4 h-4 text-zinc-500" />
               <span>Record Expense (EWT)</span>
@@ -111,14 +128,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* Dimensional Spatial KPI Cards in Neutral Palette */}
+      {/* Dimensional Spatial KPI Cards in Executive Neutral Palette */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Gross Revenue */}
-        <div className="spatial-card rounded-2xl p-5 border border-zinc-200/70">
+        <div className="spatial-card rounded-2xl p-5 border border-zinc-200/70 hover:border-zinc-300 transition-all shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Gross Income / Sales</span>
-            <div className="w-8 h-8 rounded-xl bg-zinc-100 text-zinc-700 flex items-center justify-center border border-zinc-200/80">
-              <TrendingUp className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-zinc-100/90 text-zinc-700 flex items-center justify-center border border-zinc-200/80 shadow-2xs">
+              <TrendingUp className="w-4 h-4 text-zinc-800" />
             </div>
           </div>
           <div className="mt-3">
@@ -126,17 +143,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {formatPHP(grossRevenue)}
             </span>
           </div>
-          <div className="mt-2 text-xs text-zinc-500 font-medium">
-            VATable & Zero-Rated Sales
+          <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between text-xs text-zinc-500 font-medium">
+            <span>VATable & Zero-Rated</span>
+            <span className="text-zinc-700 font-semibold font-mono">12% Output</span>
           </div>
         </div>
 
         {/* Operating Expenses */}
-        <div className="spatial-card rounded-2xl p-5 border border-zinc-200/70">
+        <div className="spatial-card rounded-2xl p-5 border border-zinc-200/70 hover:border-zinc-300 transition-all shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Total Expenses & Costs</span>
-            <div className="w-8 h-8 rounded-xl bg-zinc-100 text-zinc-700 flex items-center justify-center border border-zinc-200/80">
-              <TrendingDown className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-zinc-100/90 text-zinc-700 flex items-center justify-center border border-zinc-200/80 shadow-2xs">
+              <TrendingDown className="w-4 h-4 text-zinc-800" />
             </div>
           </div>
           <div className="mt-3">
@@ -144,17 +162,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {formatPHP(totalExpenses)}
             </span>
           </div>
-          <div className="mt-2 text-xs text-zinc-500 font-medium">
-            Cost of Services & Overhead
+          <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between text-xs text-zinc-500 font-medium">
+            <span>Direct & Operating</span>
+            <span className="text-zinc-700 font-semibold font-mono">EWT Deducted</span>
           </div>
         </div>
 
         {/* Net Operating Income */}
-        <div className="spatial-card rounded-2xl p-5 border border-zinc-200/70">
+        <div className="spatial-card rounded-2xl p-5 border border-zinc-200/70 hover:border-zinc-300 transition-all shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Net Operating Income</span>
-            <div className="w-8 h-8 rounded-xl bg-zinc-100 text-zinc-700 flex items-center justify-center border border-zinc-200/80">
-              <Sparkles className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-zinc-100/90 text-zinc-700 flex items-center justify-center border border-zinc-200/80 shadow-2xs">
+              <Scale className="w-4 h-4 text-zinc-800" />
             </div>
           </div>
           <div className="mt-3">
@@ -162,17 +181,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {formatPHP(netIncome)}
             </span>
           </div>
-          <div className="mt-2 text-xs text-zinc-500 font-medium">
-            Operating Margin: <span className="text-zinc-900 font-bold">{netMargin}%</span>
+          <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between text-xs text-zinc-500 font-medium">
+            <span>Operating Margin</span>
+            <span className="text-zinc-900 font-bold font-mono">{netMargin}%</span>
           </div>
         </div>
 
         {/* Liquid Cash & Bank */}
-        <div className="spatial-card rounded-2xl p-5 border border-zinc-200/70">
+        <div className="spatial-card rounded-2xl p-5 border border-zinc-200/70 hover:border-zinc-300 transition-all shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Liquid Cash in Bank</span>
-            <div className="w-8 h-8 rounded-xl bg-zinc-100 text-zinc-700 flex items-center justify-center border border-zinc-200/80">
-              <Wallet className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-zinc-100/90 text-zinc-700 flex items-center justify-center border border-zinc-200/80 shadow-2xs">
+              <Wallet className="w-4 h-4 text-zinc-800" />
             </div>
           </div>
           <div className="mt-3">
@@ -180,8 +200,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {formatPHP(cashBalance)}
             </span>
           </div>
-          <div className="mt-2 text-xs text-zinc-500 font-medium">
-            Account 1010 & 1020 balance
+          <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between text-xs text-zinc-500 font-medium">
+            <span>Accounts 1010 & 1020</span>
+            <span className="text-zinc-700 font-semibold font-mono">Reconciled</span>
           </div>
         </div>
       </div>
@@ -277,10 +298,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="grid grid-cols-1 gap-2 text-xs">
             <button
               onClick={() => onViewBooks('GENERAL_JOURNAL')}
-              className="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200/80 transition group text-left shadow-2xs"
+              className="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200/80 transition group text-left shadow-2xs cursor-pointer"
             >
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-zinc-800 shadow-xs" />
+                <span className="w-2 h-2 rounded-full bg-zinc-800" />
                 <span className="font-semibold text-zinc-800 group-hover:text-zinc-950">1. General Journal</span>
               </div>
               <ExternalLink className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-700" />
@@ -288,10 +309,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             <button
               onClick={() => onViewBooks('CASH_RECEIPTS')}
-              className="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200/80 transition group text-left shadow-2xs"
+              className="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200/80 transition group text-left shadow-2xs cursor-pointer"
             >
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-zinc-600 shadow-xs" />
+                <span className="w-2 h-2 rounded-full bg-zinc-600" />
                 <span className="font-semibold text-zinc-800 group-hover:text-zinc-950">2. Cash Receipts Journal (CRJ)</span>
               </div>
               <ExternalLink className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-700" />
@@ -299,21 +320,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             <button
               onClick={() => onViewBooks('CASH_DISBURSEMENTS')}
-              className="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200/80 transition group text-left shadow-2xs"
+              className="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200/80 transition group text-left shadow-2xs cursor-pointer"
             >
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-zinc-500 shadow-xs" />
+                <span className="w-2 h-2 rounded-full bg-zinc-500" />
                 <span className="font-semibold text-zinc-800 group-hover:text-zinc-950">3. Cash Disbursements Journal (CDJ)</span>
               </div>
               <ExternalLink className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-700" />
             </button>
 
             <button
-              onClick={() => onViewBooks('GENERAL_JOURNAL')}
-              className="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200/80 transition group text-left shadow-2xs"
+              onClick={() => onViewBooks('GENERAL_LEDGER')}
+              className="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-zinc-50 border border-zinc-200/80 transition group text-left shadow-2xs cursor-pointer"
             >
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-zinc-400 shadow-xs" />
+                <span className="w-2 h-2 rounded-full bg-zinc-400" />
                 <span className="font-semibold text-zinc-800 group-hover:text-zinc-950">4. General Ledger (Master Accounts)</span>
               </div>
               <ExternalLink className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-700" />
@@ -327,7 +348,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex items-center justify-between border-b border-zinc-200/70 pb-3">
           <div>
             <h2 className="text-base font-bold text-zinc-900 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-zinc-900 animate-pulse shadow-xs" />
+              <span className="w-2 h-2 rounded-full bg-zinc-900 inline-block shadow-xs" />
               Real-Time Ledger Transaction Feed
             </h2>
             <p className="text-xs text-zinc-500 font-medium">

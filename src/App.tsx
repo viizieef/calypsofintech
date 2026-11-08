@@ -10,8 +10,10 @@ import { SupabaseSyncModal } from './components/SupabaseSyncModal';
 import { RenderDeployModal } from './components/RenderDeployModal';
 import { CompanyProfileModal } from './components/CompanyProfileModal';
 import { VoucherDetailModal } from './components/VoucherDetailModal';
+import { AuthModal } from './components/AuthModal';
+import { NewLedgerModal } from './components/NewLedgerModal';
 
-import { JournalEntry, Account, CompanyProfile, SupabaseConfig } from './types/ledger';
+import { JournalEntry, Account, CompanyProfile, SupabaseConfig, AuthUser, LedgerWorkspace } from './types/ledger';
 import { DEFAULT_BIR_CHART_OF_ACCOUNTS } from './lib/defaultAccounts';
 import { DEFAULT_COMPANY_PROFILE, INITIAL_JOURNAL_ENTRIES } from './lib/sampleData';
 import { 
@@ -19,10 +21,28 @@ import {
   setupRealtimeSubscription, 
   syncEntryToSupabase 
 } from './lib/supabase';
+import { getStoredAuthUser, saveStoredAuthUser } from './lib/auth';
 
 const STORAGE_KEY_ENTRIES = 'acu_ledger_entries_v1';
 const STORAGE_KEY_ACCOUNTS = 'acu_ledger_accounts_v1';
 const STORAGE_KEY_PROFILE = 'acu_ledger_profile_v1';
+const STORAGE_KEY_LEDGERS = 'calypso_ledgers_v1';
+const STORAGE_KEY_ACTIVE_LEDGER = 'calypso_active_ledger_id_v1';
+
+const INITIAL_LEDGERS: LedgerWorkspace[] = [
+  {
+    id: 'ledger-main-2026',
+    name: 'FY 2026 - Main Operating Ledger',
+    code: 'GL-2026-MAIN',
+    fiscalYear: '2026',
+    currency: 'PHP',
+    basis: 'ACCRUAL',
+    branchName: 'Headquarters - Metro Manila',
+    description: 'Primary double-entry sales, disbursements, and 12% VAT general ledger',
+    isPrimary: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+];
 
 export default function App() {
   // Navigation State
@@ -62,6 +82,35 @@ export default function App() {
 
   const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig>(getStoredSupabaseConfig);
 
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(getStoredAuthUser);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
+  const [isAuthMandatory, setIsAuthMandatory] = useState(false);
+
+  // Ledgers Management State
+  const [ledgers, setLedgers] = useState<LedgerWorkspace[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_LEDGERS);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Error reading stored ledgers:', e);
+    }
+    return INITIAL_LEDGERS;
+  });
+
+  const [activeLedgerId, setActiveLedgerId] = useState<string>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_ACTIVE_LEDGER);
+      if (stored) return stored;
+    } catch (e) {
+      console.warn('Error reading active ledger id:', e);
+    }
+    return 'ledger-main-2026';
+  });
+
+  const [isNewLedgerModalOpen, setIsNewLedgerModalOpen] = useState(false);
+
   // Modals
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [transactionModalMode, setTransactionModalMode] = useState<'income' | 'expense' | 'manual'>('income');
@@ -69,6 +118,24 @@ export default function App() {
   const [isRenderModalOpen, setIsRenderModalOpen] = useState(false);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
+
+  // Persist ledgers
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_LEDGERS, JSON.stringify(ledgers));
+    } catch (e) {
+      console.error('Failed to save ledgers to localStorage:', e);
+    }
+  }, [ledgers]);
+
+  // Persist active ledger id
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_ACTIVE_LEDGER, activeLedgerId);
+    } catch (e) {
+      console.error('Failed to save active ledger id:', e);
+    }
+  }, [activeLedgerId]);
 
   // Persist entries to localStorage
   useEffect(() => {
@@ -202,6 +269,34 @@ export default function App() {
     });
   }, []);
 
+  // Auth Handlers
+  const handleOpenAuthModal = useCallback((tab: 'login' | 'register' = 'login') => {
+    setAuthModalTab(tab);
+    setIsAuthMandatory(false);
+    setIsAuthModalOpen(true);
+  }, []);
+
+  const handleLoginSuccess = useCallback((user: AuthUser) => {
+    setCurrentUser(user);
+    saveStoredAuthUser(user);
+    setIsAuthMandatory(false);
+    setIsAuthModalOpen(false);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    setCurrentUser(null);
+    saveStoredAuthUser(null);
+    setAuthModalTab('login');
+    setIsAuthMandatory(true);
+    setIsAuthModalOpen(true);
+  }, []);
+
+  // Ledger Creation Handler
+  const handleCreateLedger = useCallback((newLedger: LedgerWorkspace) => {
+    setLedgers((prev) => [...prev, newLedger]);
+    setActiveLedgerId(newLedger.id);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#f4f5f7] text-zinc-900 flex flex-col font-sans antialiased relative selection:bg-zinc-900 selection:text-white">
       {/* Spatial Ambient Lighting & Atmospheric Depth Planes */}
@@ -227,6 +322,13 @@ export default function App() {
         <Header
           company={company}
           supabaseConfig={supabaseConfig}
+          currentUser={currentUser}
+          ledgers={ledgers}
+          activeLedgerId={activeLedgerId}
+          onSelectLedger={setActiveLedgerId}
+          onOpenNewLedgerModal={() => setIsNewLedgerModalOpen(true)}
+          onOpenAuthModal={handleOpenAuthModal}
+          onLogout={handleLogout}
           onOpenNewTransaction={() => {
             setTransactionModalMode('income');
             setIsTransactionModalOpen(true);
@@ -255,6 +357,7 @@ export default function App() {
               setActiveView('books');
             }}
             onSelectEntry={(entry) => setSelectedEntry(entry)}
+            onOpenNewLedgerModal={() => setIsNewLedgerModalOpen(true)}
           />
         )}
 
@@ -267,6 +370,7 @@ export default function App() {
             onChangeBook={setActiveBook}
             onReverseEntry={handleReverseEntry}
             onSelectEntry={(entry) => setSelectedEntry(entry)}
+            onOpenNewLedgerModal={() => setIsNewLedgerModalOpen(true)}
           />
         )}
 
@@ -358,6 +462,23 @@ export default function App() {
         onClose={() => setSelectedEntry(null)}
         company={company}
         onRequestReversal={(id) => handleReverseEntry(id, 'User requested audit reversal')}
+      />
+
+      {/* Dedicated Log In and New User Registration Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+        initialTab={authModalTab}
+        isMandatory={isAuthMandatory}
+      />
+
+      {/* New General Ledger Creation Modal */}
+      <NewLedgerModal
+        isOpen={isNewLedgerModalOpen}
+        onClose={() => setIsNewLedgerModalOpen(false)}
+        onCreateLedger={handleCreateLedger}
+        existingLedgersCount={ledgers.length}
       />
     </div>
   );

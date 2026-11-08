@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Building2, 
   Database, 
@@ -10,12 +10,26 @@ import {
   FileCheck2,
   Layers,
   Edit,
+  BookPlus,
+  BookOpen,
+  User,
+  LogIn,
+  UserPlus,
+  LogOut,
+  ChevronDown
 } from 'lucide-react';
-import { CompanyProfile, SupabaseConfig } from '../types/ledger';
+import { CompanyProfile, SupabaseConfig, AuthUser, LedgerWorkspace } from '../types/ledger';
 
 interface HeaderProps {
   company: CompanyProfile;
   supabaseConfig: SupabaseConfig;
+  currentUser: AuthUser | null;
+  ledgers: LedgerWorkspace[];
+  activeLedgerId: string;
+  onSelectLedger: (id: string) => void;
+  onOpenNewLedgerModal: () => void;
+  onOpenAuthModal: (tab?: 'login' | 'register') => void;
+  onLogout: () => void;
   onOpenNewTransaction: () => void;
   onOpenSupabaseModal: () => void;
   onOpenRenderModal: () => void;
@@ -27,6 +41,13 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   company,
   supabaseConfig,
+  currentUser,
+  ledgers,
+  activeLedgerId,
+  onSelectLedger,
+  onOpenNewLedgerModal,
+  onOpenAuthModal,
+  onLogout,
   onOpenNewTransaction,
   onOpenSupabaseModal,
   onOpenRenderModal,
@@ -34,6 +55,9 @@ export const Header: React.FC<HeaderProps> = ({
   activeView,
   setActiveView,
 }) => {
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const activeLedger = ledgers.find(l => l.id === activeLedgerId) || ledgers[0];
+
   return (
     <header className="max-w-7xl mx-auto spatial-glass rounded-3xl p-3 sm:p-4 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] border border-white/80 ring-1 ring-zinc-950/5">
       {/* Top Bar with Brand & Spatial Tools */}
@@ -45,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="font-extrabold text-lg tracking-tight text-zinc-900">
+              <span className="font-extrabold text-lg tracking-tight text-zinc-900 font-display">
                 Calypso
               </span>
               <span className="px-2 py-0.5 text-[10px] font-semibold bg-zinc-100 text-zinc-700 border border-zinc-200/80 rounded-md flex items-center gap-1">
@@ -54,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
             <div className="flex items-center space-x-1.5 mt-0.5">
-              <p className="text-[11px] text-zinc-600 truncate max-w-[200px] sm:max-w-xs font-semibold">
+              <p className="text-[11px] text-zinc-600 truncate max-w-[180px] sm:max-w-xs font-semibold">
                 {company.businessName}
               </p>
               <button
@@ -69,16 +93,32 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Quick Actions & Status Badges in Neutral Palette */}
+        {/* Quick Actions & Status Badges */}
         <div className="flex items-center space-x-2 sm:space-x-2.5 flex-wrap">
-          {/* Edit Company Profile Button */}
+          {/* Active Ledger Selector Dropdown */}
+          <div className="relative">
+            <select
+              value={activeLedgerId}
+              onChange={(e) => onSelectLedger(e.target.value)}
+              title="Active General Ledger Book"
+              className="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-200 shadow-xs transition-all cursor-pointer max-w-[160px] sm:max-w-[190px] truncate"
+            >
+              {ledgers.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name} ({l.code})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* ADD NEW LEDGER BUTTON */}
           <button
-            onClick={onOpenCompanyModal}
-            title="Edit Company BIR Registration & Tax Settings"
+            onClick={onOpenNewLedgerModal}
+            title="Create a new General Ledger or subsidiary fiscal book"
             className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-200 shadow-xs transition-all cursor-pointer"
           >
-            <Sliders className="w-3.5 h-3.5 text-zinc-500" />
-            <span className="hidden sm:inline">Edit Company Profile</span>
+            <BookPlus className="w-3.5 h-3.5 text-zinc-600" />
+            <span className="font-bold">+ New Ledger</span>
           </button>
 
           {/* Supabase Connection Status Pill */}
@@ -93,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Database className="w-3.5 h-3.5 text-zinc-400" />
             <span className="hidden md:inline">
-              {supabaseConfig.isConnected ? 'Supabase Real-Time' : 'Connect Supabase'}
+              {supabaseConfig.isConnected ? 'Supabase' : 'Connect DB'}
             </span>
             {supabaseConfig.isConnected && (
               <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block shadow-xs" />
@@ -104,20 +144,108 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenRenderModal}
             title="Render Cloud Deployment & Blueprint"
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-200 shadow-xs transition-all cursor-pointer"
+            className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-zinc-50 text-zinc-700 border border-zinc-200 shadow-xs transition-all cursor-pointer"
           >
             <Cloud className="w-3.5 h-3.5 text-zinc-500" />
-            <span className="hidden sm:inline">Deploy on Render</span>
+            <span>Render</span>
           </button>
 
           {/* Primary Action: Record Transaction Voucher */}
           <button
             onClick={onOpenNewTransaction}
-            className="spatial-button-primary px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 cursor-pointer"
+            className="spatial-button-primary px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow-xs"
           >
             <PlusCircle className="w-4 h-4 text-zinc-300" />
             <span>Record Voucher</span>
           </button>
+
+          {/* User Account / Auth Dropdown */}
+          <div className="relative">
+            {currentUser ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center space-x-1.5 px-2.5 py-1 rounded-xl bg-zinc-100 hover:bg-zinc-200/80 border border-zinc-200/80 text-zinc-800 text-xs font-semibold transition cursor-pointer"
+                  title={`Logged in as ${currentUser.name} (${currentUser.role})`}
+                >
+                  <div className="w-6 h-6 rounded-lg bg-zinc-900 text-white flex items-center justify-center text-[10px] font-bold font-mono">
+                    {currentUser.avatarInitials || currentUser.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <span className="hidden md:inline max-w-[100px] truncate text-zinc-900 font-bold">
+                    {currentUser.name.split(' ')[0]}
+                  </span>
+                  <ChevronDown className="w-3 h-3 text-zinc-400" />
+                </button>
+
+                {isUserMenuOpen && (
+                  <div 
+                    className="absolute right-0 mt-2 w-56 rounded-2xl bg-white border border-zinc-200 shadow-xl p-2 z-50 text-xs space-y-1"
+                    onMouseLeave={() => setIsUserMenuOpen(false)}
+                  >
+                    <div className="p-2 border-b border-zinc-100">
+                      <div className="font-bold text-zinc-900 truncate">{currentUser.name}</div>
+                      <div className="text-[11px] text-zinc-500 truncate font-mono">{currentUser.email}</div>
+                      <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-zinc-100 text-zinc-700">
+                        {currentUser.role}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        onOpenAuthModal('login');
+                      }}
+                      className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 text-zinc-700 flex items-center space-x-2 cursor-pointer font-medium"
+                    >
+                      <LogIn className="w-3.5 h-3.5 text-zinc-500" />
+                      <span>Switch User / Log In</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        onOpenAuthModal('register');
+                      }}
+                      className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 text-zinc-700 flex items-center space-x-2 cursor-pointer font-medium"
+                    >
+                      <UserPlus className="w-3.5 h-3.5 text-zinc-500" />
+                      <span>Register New User</span>
+                    </button>
+
+                    <div className="border-t border-zinc-100 pt-1">
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          onLogout();
+                        }}
+                        className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-rose-50 text-rose-700 flex items-center space-x-2 cursor-pointer font-medium"
+                      >
+                        <LogOut className="w-3.5 h-3.5 text-rose-500" />
+                        <span>Log Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={() => onOpenAuthModal('login')}
+                  className="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-zinc-50 text-zinc-800 border border-zinc-200 shadow-xs cursor-pointer flex items-center space-x-1"
+                >
+                  <LogIn className="w-3.5 h-3.5 text-zinc-600" />
+                  <span>Log In</span>
+                </button>
+                <button
+                  onClick={() => onOpenAuthModal('register')}
+                  className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-zinc-900 hover:bg-black text-white shadow-xs cursor-pointer flex items-center space-x-1"
+                >
+                  <UserPlus className="w-3.5 h-3.5 text-zinc-300" />
+                  <span>Register</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

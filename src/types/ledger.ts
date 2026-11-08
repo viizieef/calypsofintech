@@ -88,3 +88,27 @@ export interface TeamMember {
   lastActive: string;
   status: 'active' | 'inactive';
 }
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Lead CPA / Controller' | 'Senior Bookkeeper' | 'Staff Accountant' | 'BIR Examiner / Auditor' | 'Business Owner / Director';
+  accessLevel: 'admin' | 'editor' | 'viewer';
+  tinOrPrcNumber?: string;
+  avatarInitials?: string;
+  createdAt: string;
+}
+
+export interface LedgerWorkspace {
+  id: string;
+  name: string;
+  code: string; // e.g. "GL-2026-MAIN"
+  fiscalYear: string; // e.g. "2026"
+  currency: string; // e.g. "PHP"
+  basis: 'ACCRUAL' | 'CASH';
+  description?: string;
+  isPrimary?: boolean;
+  createdAt: string;
+  branchName?: string;
+}

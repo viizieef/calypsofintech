@@ -104,6 +104,11 @@ export const AccountManagement: React.FC<AccountManagementProps> = ({
   const [newUserRole, setNewUserRole] = useState<TeamMember['role']>('Staff Accountant');
   const [newUserAccess, setNewUserAccess] = useState<TeamMember['accessLevel']>('editor');
 
+  // Deletion Confirmation & Error States (eliminates browser window.alert / window.confirm)
+  const [accountToDelete, setAccountToDelete] = useState<Account | null>(null);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
+  const [teamMemberToDelete, setTeamMemberToDelete] = useState<TeamMember | null>(null);
+
   // Compute ending balances for all accounts
   const ledgerMap = useMemo(() => {
     return computeGeneralLedgerByAccount(accounts, entries);
@@ -241,22 +246,20 @@ export const AccountManagement: React.FC<AccountManagementProps> = ({
     );
 
     if (hasTransactions) {
-      alert(`Cannot delete account "${acc.code} - ${acc.name}" because it contains posted entries in the BIR General Ledger. To protect audit integrity, accounts with transaction history cannot be deleted.`);
+      setDeleteErrorMessage(
+        `Cannot delete account "${acc.code} - ${acc.name}" because it contains posted entries in the BIR General Ledger. To protect audit integrity, accounts with transaction history cannot be deleted.`
+      );
       return;
     }
 
-    if (acc.isBirStandard) {
-      if (!window.confirm(`"${acc.name}" is a standard BIR Chart of Accounts line. Are you sure you want to remove it?`)) {
-        return;
-      }
-    } else {
-      if (!window.confirm(`Delete account "${acc.code} - ${acc.name}"?`)) {
-        return;
-      }
-    }
+    setAccountToDelete(acc);
+  };
 
-    const updated = accounts.filter(a => a.id !== acc.id);
+  const confirmDeleteAccount = () => {
+    if (!accountToDelete) return;
+    const updated = accounts.filter(a => a.id !== accountToDelete.id);
     onUpdateAccounts(updated);
+    setAccountToDelete(null);
   };
 
   const handleExportExcel = () => {
@@ -292,14 +295,22 @@ export const AccountManagement: React.FC<AccountManagementProps> = ({
   };
 
   const handleDeleteTeamMember = (id: string) => {
-    if (!window.confirm('Remove this authorized user from Calypso?')) return;
-    const updated = teamMembers.filter(m => m.id !== id);
+    const member = teamMembers.find(m => m.id === id);
+    if (member) {
+      setTeamMemberToDelete(member);
+    }
+  };
+
+  const confirmDeleteTeamMember = () => {
+    if (!teamMemberToDelete) return;
+    const updated = teamMembers.filter(m => m.id !== teamMemberToDelete.id);
     setTeamMembers(updated);
     try {
       localStorage.setItem('calypso_team_members_v1', JSON.stringify(updated));
     } catch (e) {
       console.warn('Failed to persist team member:', e);
     }
+    setTeamMemberToDelete(null);
   };
 
   return (
@@ -876,6 +887,92 @@ export const AccountManagement: React.FC<AccountManagementProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Audit Integrity Notice Modal (Cannot Delete Account with Transactions) */}
+      {deleteErrorMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/45 backdrop-blur-md p-4">
+          <div className="spatial-elevated rounded-3xl max-w-md w-full shadow-2xl p-6 space-y-4 border border-zinc-200/90 text-zinc-900">
+            <div className="flex items-center space-x-3 text-amber-700">
+              <AlertCircle className="w-6 h-6 text-amber-600 shrink-0" />
+              <h3 className="text-base font-bold text-zinc-900">BIR Audit Integrity Notice</h3>
+            </div>
+            <p className="text-xs text-zinc-600 leading-relaxed font-medium">
+              {deleteErrorMessage}
+            </p>
+            <div className="flex justify-end pt-2 border-t border-zinc-100">
+              <button
+                onClick={() => setDeleteErrorMessage(null)}
+                className="spatial-button-primary px-4 py-2 text-xs font-bold rounded-xl"
+              >
+                Understood
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Account Confirmation Modal */}
+      {accountToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/45 backdrop-blur-md p-4">
+          <div className="spatial-elevated rounded-3xl max-w-md w-full shadow-2xl p-6 space-y-4 border border-zinc-200/90 text-zinc-900">
+            <div className="flex items-center space-x-3 text-zinc-900">
+              <Trash2 className="w-5 h-5 text-rose-600 shrink-0" />
+              <h3 className="text-base font-bold text-zinc-900">Remove Account from COA</h3>
+            </div>
+            <p className="text-xs text-zinc-600 leading-relaxed font-medium">
+              Are you sure you want to remove <strong className="text-zinc-900 font-mono">{accountToDelete.code} - {accountToDelete.name}</strong> from your Chart of Accounts?
+              {accountToDelete.isBirStandard && (
+                <span className="block mt-2 text-amber-800 font-semibold bg-amber-50 p-2.5 rounded-xl border border-amber-200">
+                  Notice: This is a standard BIR CAS Chart of Accounts line.
+                </span>
+              )}
+            </p>
+            <div className="flex justify-end space-x-2 pt-2 border-t border-zinc-100">
+              <button
+                onClick={() => setAccountToDelete(null)}
+                className="spatial-button-secondary px-4 py-2 text-xs font-semibold rounded-xl text-zinc-700 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteAccount}
+                className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 text-xs font-bold rounded-xl shadow-xs cursor-pointer"
+              >
+                Delete Account
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Team Member Confirmation Modal */}
+      {teamMemberToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/45 backdrop-blur-md p-4">
+          <div className="spatial-elevated rounded-3xl max-w-md w-full shadow-2xl p-6 space-y-4 border border-zinc-200/90 text-zinc-900">
+            <div className="flex items-center space-x-3 text-zinc-900">
+              <Trash2 className="w-5 h-5 text-rose-600 shrink-0" />
+              <h3 className="text-base font-bold text-zinc-900">Revoke User Access</h3>
+            </div>
+            <p className="text-xs text-zinc-600 leading-relaxed font-medium">
+              Revoke Calypso access permissions for <strong className="text-zinc-900">{teamMemberToDelete.name}</strong> ({teamMemberToDelete.email})?
+            </p>
+            <div className="flex justify-end space-x-2 pt-2 border-t border-zinc-100">
+              <button
+                onClick={() => setTeamMemberToDelete(null)}
+                className="spatial-button-secondary px-4 py-2 text-xs font-semibold rounded-xl text-zinc-700 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteTeamMember}
+                className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 text-xs font-bold rounded-xl shadow-xs cursor-pointer"
+              >
+                Revoke Access
+              </button>
+            </div>
           </div>
         </div>
       )}

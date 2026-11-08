@@ -10,7 +10,8 @@ import {
   RotateCcw, 
   CheckCircle2, 
   AlertCircle,
-  FileSpreadsheet
+  FileSpreadsheet,
+  BookPlus
 } from 'lucide-react';
 import { JournalEntry, Account, CompanyProfile } from '../types/ledger';
 import { 
@@ -31,6 +32,7 @@ interface BooksOfAccountsProps {
   onChangeBook: (book: 'GENERAL_JOURNAL' | 'CASH_RECEIPTS' | 'CASH_DISBURSEMENTS' | 'GENERAL_LEDGER') => void;
   onReverseEntry: (entryId: string, reason: string) => void;
   onSelectEntry: (entry: JournalEntry) => void;
+  onOpenNewLedgerModal?: () => void;
 }
 
 export const BooksOfAccounts: React.FC<BooksOfAccountsProps> = ({
@@ -41,6 +43,7 @@ export const BooksOfAccounts: React.FC<BooksOfAccountsProps> = ({
   onChangeBook,
   onReverseEntry,
   onSelectEntry,
+  onOpenNewLedgerModal,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAccountId, setSelectedAccountId] = useState<string>(accounts[0]?.id || 'acc-1020');
@@ -180,8 +183,18 @@ export const BooksOfAccounts: React.FC<BooksOfAccountsProps> = ({
           </button>
         </div>
 
-        {/* Action Buttons: Download Excel (.xlsx), Export BIR Text, CSV, Print in Neutral Spatial Style */}
+        {/* Action Buttons: New Ledger, Download Excel (.xlsx), Export BIR Text, CSV, Print in Neutral Spatial Style */}
         <div className="flex items-center space-x-2 flex-wrap">
+          {onOpenNewLedgerModal && (
+            <button
+              onClick={onOpenNewLedgerModal}
+              className="spatial-button-secondary px-3.5 py-2 text-xs font-bold rounded-xl flex items-center space-x-1.5 cursor-pointer bg-white text-zinc-900 border border-zinc-200 shadow-2xs"
+              title="Create a new General Ledger or subsidiary fiscal book"
+            >
+              <BookPlus className="w-3.5 h-3.5 text-zinc-700" />
+              <span>+ New Ledger</span>
+            </button>
+          )}
           <button
             onClick={handleExportExcel}
             className="spatial-button-primary px-3.5 py-2 text-xs font-bold rounded-xl flex items-center space-x-1.5 cursor-pointer"
@@ -508,14 +521,18 @@ export const BooksOfAccounts: React.FC<BooksOfAccountsProps> = ({
                         </tbody>
                         <tfoot>
                           <tr className="border-t border-zinc-200 text-zinc-900 font-bold font-mono">
-                            <td colSpan={3} className="py-1.5 px-2 text-right uppercase text-[10px] text-zinc-500">
-                              Total
+                            <td colSpan={3} className="py-2 px-2 text-right uppercase text-[10px] text-zinc-500 font-semibold">
+                              Voucher Total Balance
                             </td>
-                            <td className="py-1.5 px-2 text-right text-zinc-900 tabular-nums">
-                              {formatPHP(totalDebit)}
+                            <td className="py-2 px-2 text-right text-zinc-900 tabular-nums">
+                              <span className="accounting-double-underline inline-block pb-0.5">
+                                {formatPHP(totalDebit)}
+                              </span>
                             </td>
-                            <td className="py-1.5 px-2 text-right text-zinc-900 tabular-nums">
-                              {formatPHP(totalCredit)}
+                            <td className="py-2 px-2 text-right text-zinc-900 tabular-nums">
+                              <span className="accounting-double-underline inline-block pb-0.5">
+                                {formatPHP(totalCredit)}
+                              </span>
                             </td>
                           </tr>
                         </tfoot>

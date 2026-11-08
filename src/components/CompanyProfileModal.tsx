@@ -27,6 +27,7 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<CompanyProfile>(profile);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
   const [activeTab, setActiveTab] = useState<'entity' | 'bir' | 'signatory'>('entity');
 
   useEffect(() => {
@@ -46,9 +47,13 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({
   };
 
   const handleResetDefaults = () => {
-    if (window.confirm('Reset company profile to official BIR default demo values?')) {
-      setFormData(DEFAULT_COMPANY_PROFILE);
+    if (!confirmReset) {
+      setConfirmReset(true);
+      setTimeout(() => setConfirmReset(false), 5000);
+      return;
     }
+    setFormData(DEFAULT_COMPANY_PROFILE);
+    setConfirmReset(false);
   };
 
   return (
@@ -351,10 +356,14 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({
             <button
               type="button"
               onClick={handleResetDefaults}
-              className="text-xs text-zinc-500 hover:text-zinc-800 flex items-center space-x-1 underline"
+              className={`text-xs flex items-center space-x-1 cursor-pointer transition ${
+                confirmReset 
+                  ? 'text-amber-800 font-bold bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-300' 
+                  : 'text-zinc-500 hover:text-zinc-800 underline'
+              }`}
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset to Sample BIR Profile</span>
+              <span>{confirmReset ? 'Click again to confirm reset' : 'Reset to Sample BIR Profile'}</span>
             </button>
 
             <div className="flex items-center space-x-2">
