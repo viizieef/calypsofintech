@@ -61,22 +61,45 @@ CREATE TABLE IF NOT EXISTS company_profile (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. Enable Real-Time Replication for Supabase Listeners
-ALTER PUBLICATION supabase_realtime ADD TABLE journal_entries;
-ALTER PUBLICATION supabase_realtime ADD TABLE accounts;
+-- 5. Enable Real-Time Replication for Supabase Listeners (Idempotent)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'journal_entries'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE journal_entries;
+  END IF;
 
--- 6. Row Level Security (RLS) - Public read/write or authenticated
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'accounts'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE accounts;
+  END IF;
+END $$;
+
+-- 6. Row Level Security (RLS) - Idempotent
 ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE journal_entries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE company_profile ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow anonymous read accounts" ON accounts;
 CREATE POLICY "Allow anonymous read accounts" ON accounts FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow anonymous insert/update accounts" ON accounts;
 CREATE POLICY "Allow anonymous insert/update accounts" ON accounts FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Allow anonymous read entries" ON journal_entries;
 CREATE POLICY "Allow anonymous read entries" ON journal_entries FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow anonymous insert/update entries" ON journal_entries;
 CREATE POLICY "Allow anonymous insert/update entries" ON journal_entries FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Allow anonymous read profile" ON company_profile;
 CREATE POLICY "Allow anonymous read profile" ON company_profile FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow anonymous insert/update profile" ON company_profile;
 CREATE POLICY "Allow anonymous insert/update profile" ON company_profile FOR ALL USING (true);
 
 -- Success verification index

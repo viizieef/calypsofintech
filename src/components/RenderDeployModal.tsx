@@ -24,9 +24,9 @@ export const RenderDeployModal: React.FC<RenderDeployModalProps> = ({
   - type: web
     name: calypso-bir
     runtime: node
-    plan: starter
+    plan: free # 100% Free Tier - No credit card required
     region: singapore # Closest low-latency region to Philippines
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --legacy-peer-deps && npm run build
     startCommand: node server.js
     healthCheckPath: /healthz
     envVars:
@@ -103,7 +103,7 @@ export const RenderDeployModal: React.FC<RenderDeployModalProps> = ({
                 </div>
                 <div>
                   <span className="text-zinc-500 block">Build Command:</span>
-                  <span className="text-zinc-900 font-semibold">npm install && npm run build</span>
+                  <span className="text-zinc-900 font-semibold font-mono text-[10px]">npm install --legacy-peer-deps &amp;&amp; npm run build</span>
                 </div>
                 <div>
                   <span className="text-zinc-500 block">Start Command:</span>
